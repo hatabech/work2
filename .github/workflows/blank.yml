@@ -1,0 +1,33 @@
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: docker build -t ghcr.io/hatabech/work2:1.0 .
+      - run: docker push ghcr.io/hatabech/work2:1.0
+      - run: ssh -o "StrictHostKeyChecking no" 'hatabech-work2-khqdqpemnv3#CPNqCvo8zZ2OYUwNdJsaBmN6nEwW7av0@hatabech-work2-khqdqpemnv3.ssh.ws-eu106.gitpod.io' 'cd /workspace/work2/ && docker compose pull && docker compose up -d'
+      - name: send default message
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          message: "мы победили"
+          to: 1321211478
+          token: 6951928575:AAFvUKazfHTe2SF4ek5Eco0Ce3vlIjMpt9k
+      - name: send default message
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          message: "мы зафейлились"
+          to: 1321211478
+          token: 6951928575:AAFvUKazfHTe2SF4ek5Eco0Ce3vlIjMpt9k
